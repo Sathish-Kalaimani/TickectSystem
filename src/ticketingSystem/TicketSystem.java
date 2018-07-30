@@ -1,6 +1,7 @@
 package ticketingSystem;
 
 import java.util.HashMap;
+import java.util.Scanner;
 
 public class TicketSystem {
 
@@ -10,18 +11,21 @@ public class TicketSystem {
 	public static void main(String[] args) {
 		String[] routes = {"Metro","RMZ","Tin Factory","KR Puram Station","B.Narayanapura","Mahadevpura","Phenix","ESI","Hoodi","Big Baazar","Satya Sai","Vaidehi"};
 		setRouteMap(routes);
-		generateTicket("KR Puram Station", "KR Puram Station", 50,"Adult",5);
+		purchaseTicket("Metro", "Vaidehi", 2000,"Adult",10);
 	}
+	
+	/*****************Set Route Map*****************************/
 	
 	public static void setRouteMap(String[] stageNames) {
 		
 		for(int i=0; i < stageNames.length; i++) {
 			routeMap.put(stageNames[i], i);
 		}
-		
 	}
+	
+	/*****************Purchase Ticket*****************************/
 
-	public static void generateTicket(String origin, String destination, int denomination,String ageGroup, int numberOfTickets) {
+	public static void purchaseTicket(String origin, String destination, int denomination,String ageGroup, int numberOfTickets) {
 
 		int returnAmount = 0, stages = 0, totalAmount = 0; 
 
@@ -34,38 +38,70 @@ public class TicketSystem {
 			System.out.println("Invalid Origin or Destination");
 		}
 		if (stages > 0) {
-
-			System.out.println("The number of Stages in the route are " + stages);
-			
+			System.out.println("You are travelling from "+origin+" to "+destination);
+						
 			int baseFare = getBaseFare(stages);
-			
-			if (ageGroup.contains("Child")) {
-				float disc = 100 - 50;
-				baseFare = Math.round((baseFare * disc) / 100);
-				returnAmount = denomination - baseFare;
-			} else if (ageGroup.contains("Senior Citizen")) {
-				float disc = 100 - 25;
-				baseFare = Math.round((baseFare * disc) / 100);
-			} else {
-
-			}
-			totalAmount = baseFare * numberOfTickets;
+			int fair = calculateFair(ageGroup, baseFare);
+			System.out.println("Fair per "+ageGroup+" is Rs."+fair+"/-");
+			totalAmount = fair * numberOfTickets;
+			System.out.println("The denomination given by you is Rs."+denomination+"/-");
 			if (totalAmount > denomination) {
 				int amtToPay = Math.abs(totalAmount - denomination);
-				System.out.println("You still need to Pay Rs." + amtToPay+"/-");
+				System.out.println("The total Amount of the ticket is Rs."+totalAmount+"/- You still need to Pay Rs." + amtToPay+"/-");
+				String response = userConfirmation();
+					if(response.contains("Yes")) {
+						generateTickets(numberOfTickets);
+					}else {
+						System.out.println("You have choosen to offboard");
+					}
 			} else {
 				returnAmount = Math.abs(totalAmount - denomination);
-				System.out.println("Amount to be Returned Rs."+returnAmount+"/-");
+				System.out.println("The total Amount is Rs."+totalAmount+"/- Amount to be Returned Rs."+returnAmount+"/-");
+				generateTickets(numberOfTickets);
 			}
 			
-			System.out.println("You are Traveling from " + origin + " to " + destination + " and your currency Note is Rs." + denomination+"/-");
-			System.out.println(	"The fare for the journey is Rs." + totalAmount + "/-");
-			
 		} else {
-				System.out.println("You are already at your destination");
+				
 		}
 	}
 	
+	/*****************Confirm if User wants to Pay additional Amount*****************************/
+	
+	public static String userConfirmation() {
+		Scanner scan = new Scanner(System.in);
+		System.out.println("Do you want to Purchase the ticket ?");
+		String response = scan.next();
+		scan.close();
+		return response;		
+	}
+	
+	/*****************generate Tickets*****************************/
+	
+	public static void generateTickets(int numberOfTickets) {
+		
+		for(int i = 0; i < numberOfTickets; i++) {			
+			int ticket = (int) Math.round(Math.random()*1000000);
+			System.out.println("Ticket Number "+(i+1)+" : "+ticket);
+		}
+	}
+	
+	/*****************Calculate Fare*****************************/
+	
+	public static int calculateFair(String ageGroup, int baseFare) {
+		
+		if (ageGroup.contains("Child")) {
+			float disc = 100 - 50;
+			return baseFare = Math.round((baseFare * disc) / 100);
+		} else if (ageGroup.contains("Senior Citizen")) {
+			float disc = 100 - 25;
+			return baseFare = Math.round((baseFare * disc) / 100);
+		} else {
+			return baseFare;
+		}
+	}
+	
+	
+	/*****************Get Base Fare based on Stages*****************************/
 	
 	public static int getBaseFare(int stages) {
 		switch (stages) {
@@ -141,7 +177,6 @@ public class TicketSystem {
 		default:
 			System.out.println("This is invalid origin or destination");
 		}
-		System.out.println("The base fare is "+fare);
 		return fare;
 		
 	}	
