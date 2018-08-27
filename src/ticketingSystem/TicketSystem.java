@@ -1,5 +1,8 @@
 package ticketingSystem;
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Scanner;
 
@@ -7,11 +10,14 @@ public class TicketSystem {
 
 	static HashMap<String, Integer> routeMap = new HashMap<String, Integer>();
 	static int fare = 0;
+	static HashMap<String,ArrayList<Integer>> ticketNbrs = new HashMap<>();
+	static ArrayList<Integer> tickets = new ArrayList<>();
 			
 	public static void main(String[] args) {
 		String[] routes = {"Metro","RMZ","Tin Factory","KR Puram Station","B.Narayanapura","Mahadevpura","Phenix","ESI","Hoodi","Big Baazar","Satya Sai","Vaidehi"};
 		setRouteMap(routes);
-		purchaseTicket("Metro", "Vaidehi", 2000,"Adult",10);
+		purchaseTicket("Vaidehi", "Big Baazar", 10,"Adult",1);
+		
 	}
 	
 	/*****************Set Route Map*****************************/
@@ -23,66 +29,86 @@ public class TicketSystem {
 		}
 	}
 	
+	/*****************Check Fair*****************************/
+	
+	public static int checkFair(String origin, String destination, String ageGroup) {
+		
+		int stage = 0, ticketFare = 0;
+		
+		try {
+			stage = Math.abs(routeMap.get(origin) - routeMap.get(destination));	
+		}catch (Exception e) {
+			System.out.println("Invalid Origin or Destination");
+		}
+		
+		if(stage > 0 ) {
+			int baseFare = getBaseFare(stage);
+			ticketFare = calculateFair(ageGroup, baseFare);
+			System.out.println("Fare per "+ageGroup+" is Rs."+ticketFare+"/-");
+		}
+		
+		return ticketFare;
+	}
+	
+	
 	/*****************Purchase Ticket*****************************/
 
 	public static void purchaseTicket(String origin, String destination, int denomination,String ageGroup, int numberOfTickets) {
 
-		int returnAmount = 0, stages = 0, totalAmount = 0; 
+		int returnAmount = 0, totalAmount = 0; 
 
-		try {
 			
-			stages = Math.abs(routeMap.get(origin) - routeMap.get(destination));
-			
-		} catch (Exception e) {
-			
-			System.out.println("Invalid Origin or Destination");
-		}
-		if (stages > 0) {
-			System.out.println("You are travelling from "+origin+" to "+destination);
-						
-			int baseFare = getBaseFare(stages);
-			int fair = calculateFair(ageGroup, baseFare);
-			System.out.println("Fair per "+ageGroup+" is Rs."+fair+"/-");
-			totalAmount = fair * numberOfTickets;
-			System.out.println("The denomination given by you is Rs."+denomination+"/-");
-			if (totalAmount > denomination) {
-				int amtToPay = Math.abs(totalAmount - denomination);
-				System.out.println("The total Amount of the ticket is Rs."+totalAmount+"/- You still need to Pay Rs." + amtToPay+"/-");
-				String response = userConfirmation();
+		
+			totalAmount = checkFair(origin,destination,ageGroup) * numberOfTickets;
+			if(totalAmount!=0) {
+				System.out.println("The denomination given by you is Rs."+denomination+"/-");
+				if(totalAmount > denomination) {
+					int amountToPay = Math.abs(totalAmount - denomination);
+					System.out.println("The total Amount of the ticket is Rs."+totalAmount+"/- You still need to Pay Rs." + amountToPay+"/-");
+					String response = userConfirmation();
 					if(response.contains("Yes")) {
 						generateTickets(numberOfTickets);
 					}else {
 						System.out.println("You have choosen to offboard");
 					}
-			} else {
-				returnAmount = Math.abs(totalAmount - denomination);
-				System.out.println("The total Amount is Rs."+totalAmount+"/- Amount to be Returned Rs."+returnAmount+"/-");
-				generateTickets(numberOfTickets);
-			}
-			
-		} else {
-				
-		}
+				}else {
+					returnAmount = Math.abs(totalAmount - denomination);
+					System.out.println("The total Amount is Rs."+totalAmount+"/- Amount to be Returned Rs."+returnAmount+"/-");
+					generateTickets(numberOfTickets);
+				}
+			}else {
+				// Do Nothing
+			}		
 	}
 	
 	/*****************Confirm if User wants to Pay additional Amount*****************************/
 	
 	public static String userConfirmation() {
 		Scanner scan = new Scanner(System.in);
-		System.out.println("Do you want to Purchase the ticket ?");
-		String response = scan.next();
+		String response;		
+		do{
+			System.out.println("Do you want to Purchase the ticket ? Yes or No.");
+			response = scan.next().toLowerCase();			
+		}while(!response.contains("ye") && !response.contains("n"));
 		scan.close();
-		return response;		
+		return response;
 	}
 	
 	/*****************generate Tickets*****************************/
 	
 	public static void generateTickets(int numberOfTickets) {
 		
+		int ticket = 0;
+		Date today = null;
+				
 		for(int i = 0; i < numberOfTickets; i++) {			
-			int ticket = (int) Math.round(Math.random()*1000000);
+			ticket = (int) Math.round(Math.random()*1000000);
+			today = new Date();
+			tickets.add(ticket);
 			System.out.println("Ticket Number "+(i+1)+" : "+ticket);
-		}
+		}	
+			SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy");
+			ticketNbrs.put(df.format(today), tickets);		
 	}
 	
 	/*****************Calculate Fare*****************************/
